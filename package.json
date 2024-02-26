@@ -6,7 +6,7 @@
   "author": "Bamboo <75402531+Shiou-Ju@users.noreply.github.com>",
   "license": "MIT",
   "scripts": {
-    "format": "prettier --write \"./**/*.{ts,json}\"",
+    "format": "prettier --write \"./**/*.{ts,json,js,yml}\"",
     "dev": "nodemon --exec ts-node src/server.ts"
   },
   "devDependencies": {
