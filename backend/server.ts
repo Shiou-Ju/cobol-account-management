@@ -5,7 +5,6 @@ const app = express();
 const PORT = 3000;
 
 app.get('/', async (_req, res) => {
-  // res.send('Hello World!');
   const { rows } = await pgPool.query('SELECT NOW() as now');
   res.send(`Database time is: ${rows[0].now}`);
 });
@@ -27,6 +26,16 @@ app.get('/user/:user', async (req, res) => {
 
     const userInfo = rows[0];
     res.json(userInfo);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/users', async (_req, res) => {
+  try {
+    const { rows } = await pgPool.query('SELECT * FROM transactions;');
+    res.json(rows);
   } catch (error) {
     console.error(error);
     res.status(500).send('Server error');
