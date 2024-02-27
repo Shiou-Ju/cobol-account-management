@@ -16,6 +16,6 @@
     },
     "lib": ["esnext", "dom", "dom.iterable"]
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.vue", "src/vue-shims.d.ts"],
   "exclude": ["node_modules"]
 }
