@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Users Information</h1>
+    <h1>User List</h1>
     <div class="users-container">
       <div class="users-list">
         <ul>
@@ -8,12 +8,12 @@
             <!-- TODO: router is currently not working -->
             <router-link :to="`/user/${user.user}`">
               <p>
-                <strong>User:</strong>
+                <strong>User: </strong>
                 <span class="user-name">{{ user.user }}</span>
               </p>
             </router-link>
             <p class="sub-desc">
-              <strong>Last Update:</strong>
+              <strong>Last Transaction:</strong>
               {{ new Date(user.date).toLocaleString() }}
             </p>
           </li>
