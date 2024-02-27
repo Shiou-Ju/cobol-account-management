@@ -26,7 +26,8 @@
         </tbody>
       </table>
     </div>
-    <p v-else>No recent transactions found.</p>
+    <p v-if="isLoading">Loading...</p>
+    <p v-else-if="transactions.length === 0">No recent transactions found</p>
   </div>
 </template>
 
@@ -40,6 +41,7 @@ export default {
   setup() {
     const userData = ref({});
     const transactions = ref([]);
+    const isLoading = ref(true);
 
     const route = useRoute();
     const userName = route.params.userName;
@@ -54,14 +56,18 @@ export default {
 
         transactions.value = transactionResponse.data;
         userData.value = userInfoResponse.data;
+
+        isLoading.value = false;
       } catch (error) {
         console.error('API call failed:', error);
+        isLoading.value = false;
       }
     });
 
     return {
       userData,
       transactions,
+      isLoading,
     };
   },
 };
@@ -88,8 +94,8 @@ table {
 
 th,
 td {
-  border: 1px solid #ddd;
-  padding: 8px;
+  border: 0.1rem solid #ddd;
+  padding: 0.2rem;
   text-align: left;
 }
 
