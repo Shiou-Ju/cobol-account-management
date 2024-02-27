@@ -105,12 +105,6 @@ app.post('/transaction', async (req, res) => {
     return res.status(400).send('invalid transaction type');
   }
 
-  // TODO: transaction must be the latest one
-  // const userResult = await pgPool.query(
-  //   'SELECT * FROM transactions WHERE "user" = $1 LIMIT 1;',
-  //   [user],
-  // );
-
   const GET_LATEST_USER_TRANSACTION = `
 SELECT * FROM (
   SELECT
@@ -137,8 +131,6 @@ WHERE rn = 1;
   const userNameToCobol = user.toUpperCase();
   const transactionTypeToCobol = type.toUpperCase();
 
-  // const command = `echo "${userNameToCobol}\n${currentBalance}\n${transaction}\n${transactionTypeToCobol}" | cobc -o cobol-output/ProcessTransaction -xj ${cobolFilePath}`;
-
   const outputDir = path.join(__dirname, 'cobol-output');
 
   if (!existsSync(outputDir)) {
@@ -157,15 +149,12 @@ WHERE rn = 1;
 
     if (resultMatch) {
       const newBalance = parseFloat(resultMatch[1]);
-      //TODO: Update database logic goes here
 
-      // 根據 type 調整 transaction 的正負值
       const adjustedTransactionAmount =
         type.toUpperCase() === 'WITHDRAW'
           ? -Math.abs(transaction)
           : Math.abs(transaction);
 
-      // 構建 SQL 查詢字符串來插入新的交易記錄
       const INSERT_NEW_TRANSACTION = `
 INSERT INTO transactions ("user", "transaction", "balance", "date")
 VALUES ($1, $2, $3, NOW())
