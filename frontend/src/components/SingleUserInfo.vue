@@ -2,9 +2,12 @@
   <div>
     <h1>User Information</h1>
     <p><strong>User:</strong> {{ data.user }}</p>
-    <p><strong>Transaction:</strong> {{ data.transaction }}</p>
+    <!-- <p><strong>Transaction:</strong> {{ data.transaction }}</p> -->
     <p><strong>Balance:</strong> {{ data.balance }}</p>
-    <p><strong>Date:</strong> {{ new Date(data.date).toLocaleString() }}</p>
+    <!-- <p><strong>Date:</strong> {{ new Date(data.date).toLocaleString() }}</p> -->
+    <router-link :to="`/user/${data.user}/transaction`"
+      >Transaction</router-link
+    >
   </div>
 </template>
 

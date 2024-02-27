@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import AppHome from '@/components/AppHome.vue';
 import SingleUserInfo from '@/components/SingleUserInfo.vue';
+import TransactionForm from '@/components/TransactionForm.vue';
 
 const routes = [
   {
@@ -12,6 +13,12 @@ const routes = [
     path: '/user/:userName',
     name: 'SingleUser',
     component: SingleUserInfo,
+    props: true,
+  },
+  {
+    path: '/user/:userName/transaction',
+    name: 'UserTransaction',
+    component: TransactionForm,
     props: true,
   },
 ];
