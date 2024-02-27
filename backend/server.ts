@@ -1,12 +1,6 @@
 import express from 'express';
 import { pgPool } from './connection';
 import { exec } from 'child_process';
-
-// TODO: not unser root dir
-// File '/Users/bamboo/Repos/cobol-account-management/utils/interfaces.ts' is not under 'rootDir' '/Users/bamboo/Repos/cobol-account-management/backend'. 'rootDir' is expected to contain all source files.
-// The file is in the program because:
-// Matched by include pattern '../utils/**/*' in '/Users/bamboo/Repos/cobol-account-management/backend/tsconfig.json'ts
-
 import {
   TransactionPayload,
   TransactionRecord,
@@ -39,8 +33,6 @@ app.get('/', async (_req, res) => {
 app.get('/user/:user', async (req, res) => {
   const userName = req.params.user;
 
-  // TODO: maybe more than one
-  // TODO: modify frontend to make transaction list as well
   const GET_LATEST_USER_TRANSACTION = `
     SELECT * FROM (
       SELECT
@@ -67,6 +59,33 @@ app.get('/user/:user', async (req, res) => {
     res.json(userInfo);
   } catch (error) {
     console.error(error);
+    res.status(500).send('Server error');
+  }
+});
+
+app.get('/user/:user/transactions', async (req, res) => {
+  const userName = req.params.user;
+
+  const GET_ALL_USER_TRANSACTIONS = `
+    SELECT * FROM transactions
+    WHERE "user" = $1
+    ORDER BY "date" DESC
+    LIMIT 10;
+  `;
+
+  try {
+    const { rows } = await pgPool.query(GET_ALL_USER_TRANSACTIONS, [userName]);
+    const hasTransactions = rows.length > 0;
+
+    if (!hasTransactions) {
+      return res
+        .status(404)
+        .send(`Transactions not found for the user "${userName}"`);
+    }
+
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching transactions:', error);
     res.status(500).send('Server error');
   }
 });
