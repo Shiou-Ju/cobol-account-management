@@ -5,7 +5,7 @@
       <p><strong>User:</strong> {{ userData.user }}</p>
       <p><strong>Balance:</strong> {{ userData.balance }}</p>
 
-      <div class="transaction-container">
+      <div class="transaction-container" v-if="userData.user">
         <div class="radio-group">
           <div>
             <input
@@ -42,6 +42,7 @@
         <button type="submit">Submit</button>
       </div>
     </form>
+    <p v-if="error" class="error">{{ error }}</p>
   </div>
 </template>
 
@@ -56,6 +57,7 @@ export default {
     const userData = ref({ user: '', balance: 0 });
     const transactionType = ref('deposit');
     const amount = ref(0);
+    const error = ref('');
     const route = useRoute();
 
     onMounted(async () => {
@@ -65,22 +67,27 @@ export default {
         userData.value = data;
       } catch (error) {
         console.error('API call failed:', error);
+        error.value = 'Failed to load user data.';
       }
     });
+
+    const uppercaseTransactionType = transactionType.value.toUpperCase();
 
     const submitTransaction = async () => {
       try {
         const payload = {
-          user: userData.value.user,
           transaction:
             transactionType.value === 'deposit' ? amount.value : -amount.value,
+          type: uppercaseTransactionType,
         };
 
-        // TODO: api needde
-        await axios.post('/api/transaction', payload);
-        // TODO: upadate user info
-      } catch (error) {
-        console.error('Transaction failed:', error);
+        const response = await axios.post('/api/transaction', payload);
+
+        userData.value.balance = response.data.newTransactionRecord.balance;
+        error.value = '';
+      } catch (err) {
+        console.error('Transaction failed:', err);
+        error.value = err.response?.data || 'Transaction failed.';
       }
     };
 
@@ -89,6 +96,7 @@ export default {
       transactionType,
       amount,
       submitTransaction,
+      error,
     };
   },
 };

@@ -5,9 +5,7 @@
     <!-- <p><strong>Transaction:</strong> {{ data.transaction }}</p> -->
     <p><strong>Balance:</strong> {{ data.balance }}</p>
     <!-- <p><strong>Date:</strong> {{ new Date(data.date).toLocaleString() }}</p> -->
-    <router-link :to="`/user/${data.user}/transaction`"
-      >Transaction</router-link
-    >
+    <router-link :to="`/user/${data.user}/transaction`">Transact</router-link>
   </div>
 </template>
 
