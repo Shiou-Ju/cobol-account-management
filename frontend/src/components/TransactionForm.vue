@@ -60,6 +60,11 @@ export default {
     const error = ref('');
     const route = useRoute();
 
+    function resetFields() {
+      amount.value = 0;
+      error.value = '';
+    }
+
     onMounted(async () => {
       const userName = route.params.userName;
       try {
@@ -71,20 +76,25 @@ export default {
       }
     });
 
-    const uppercaseTransactionType = transactionType.value.toUpperCase();
-
     const submitTransaction = async () => {
       try {
+        const uppercaseTransactionType = transactionType.value.toUpperCase();
+
         const payload = {
           transaction:
             transactionType.value === 'deposit' ? amount.value : -amount.value,
           type: uppercaseTransactionType,
+          user: userData.value.user,
         };
 
         const response = await axios.post('/api/transaction', payload);
 
-        userData.value.balance = response.data.newTransactionRecord.balance;
-        error.value = '';
+        if (response.data.status === 'success') {
+          const newBalance = response.data.newTransactionRecord.balance;
+
+          userData.value.balance = newBalance;
+          resetFields();
+        }
       } catch (err) {
         console.error('Transaction failed:', err);
         error.value = err.response?.data || 'Transaction failed.';
