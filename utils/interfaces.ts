@@ -5,8 +5,12 @@ export type TransactionRecord = {
   date: string;
 };
 
+export const VALID_TRANSACTION_TYPES = ['DEPOSIT', 'WITHDRAW'] as const;
+
+export type TransactionType = typeof VALID_TRANSACTION_TYPES[number];
+
 export type TransactionPayload = {
   user: string;
   transaction: number;
-  type: 'Deposit' | 'Withdrawal';
+  type: TransactionType;
 };
