@@ -7,7 +7,11 @@
   "license": "MIT",
   "scripts": {
     "format": "prettier --write \"./**/*.{ts,json,js,yml}\"",
-    "dev": "nodemon --exec ts-node backend/server.ts"
+    "dev": "NODE_ENV=development nodemon --exec ts-node backend/server.ts",
+    "start": "NODE_ENV=production yarn build:backend && yarn build:frontend && yarn copy-cobol && node backend/dist/server.js",
+    "build:backend": "tsc -p backend/tsconfig.json",
+    "build:frontend": "cd frontend && yarn && yarn build",
+    "copy-cobol": "cp -r ./backend/cobol ./backend/dist/cobol"
   },
   "dependencies": {
     "express": "^4.18.2",

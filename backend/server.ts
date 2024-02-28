@@ -6,10 +6,15 @@ import {
   TransactionRecord,
   TransactionType,
   VALID_TRANSACTION_TYPES,
-} from '../utils/interfaces';
+} from './interfaces';
 import { promisify } from 'util';
 import path from 'path';
 import { existsSync, mkdirSync } from 'fs';
+
+function isValidTransactionType(type: string): type is TransactionType {
+  // TODO: if as is ok here
+  return VALID_TRANSACTION_TYPES.includes(type as TransactionType);
+}
 
 const execAsync = promisify(exec);
 
@@ -18,19 +23,14 @@ const PORT = 3000;
 
 app.use(express.json());
 
-function isValidTransactionType(type: string): type is TransactionType {
-  // TODO: if as is ok here
-  return VALID_TRANSACTION_TYPES.includes(type as TransactionType);
-}
+const isDevMode = process.env.NODE_ENV === 'development';
 
-app.get('/', async (_req, res) => {
+app.get('/api/time', async (_req, res) => {
   const { rows } = await pgPool.query('SELECT NOW() as now');
   res.send(`Database time is: ${rows[0].now}`);
 });
 
-// TODO: add another api for transaction list
-
-app.get('/user/:user', async (req, res) => {
+app.get('/api/user/:user', async (req, res) => {
   const userName = req.params.user;
 
   const GET_LATEST_USER_TRANSACTION = `
@@ -63,7 +63,7 @@ app.get('/user/:user', async (req, res) => {
   }
 });
 
-app.get('/user/:user/transactions', async (req, res) => {
+app.get('/api/user/:user/transactions', async (req, res) => {
   const userName = req.params.user;
 
   const GET_ALL_USER_TRANSACTIONS = `
@@ -90,7 +90,7 @@ app.get('/user/:user/transactions', async (req, res) => {
   }
 });
 
-app.get('/users', async (_req, res) => {
+app.get('/api/users', async (_req, res) => {
   try {
     const sql = `SELECT * FROM (
       SELECT 
@@ -110,7 +110,7 @@ app.get('/users', async (_req, res) => {
   }
 });
 
-app.post('/transaction', async (req, res) => {
+app.post('/api/transaction', async (req, res) => {
   // TODO: ts new feature? satisfy
   const { user, transaction, type } = req.body as TransactionPayload;
 
@@ -198,6 +198,18 @@ RETURNING *;
     res.status(500).send('Server error');
   }
 });
+
+if (!isDevMode) {
+  const frontendDistPath = path.resolve(__dirname, '../../frontend/dist');
+
+  app.use(express.static(frontendDistPath));
+
+  app.get('*', (_req, res) => {
+    const frontEndPageToBeServed = path.join(frontendDistPath, 'index.html');
+
+    res.sendFile(frontEndPageToBeServed);
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

@@ -7,7 +7,7 @@ export type TransactionRecord = {
 
 export const VALID_TRANSACTION_TYPES = ['DEPOSIT', 'WITHDRAW'] as const;
 
-export type TransactionType = typeof VALID_TRANSACTION_TYPES[number];
+export type TransactionType = (typeof VALID_TRANSACTION_TYPES)[number];
 
 export type TransactionPayload = {
   user: string;
