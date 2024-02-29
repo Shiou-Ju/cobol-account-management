@@ -8,9 +8,9 @@
   "scripts": {
     "format": "prettier --write \"./**/*.{ts,json,js,yml}\"",
     "dev": "NODE_ENV=development nodemon --exec ts-node backend/server.ts",
-    "start": "NODE_ENV=production yarn build:backend && yarn build:frontend && yarn copy-cobol && node backend/dist/server.js",
+    "start": "yarn && yarn build:backend && yarn build:frontend && yarn copy-cobol && node backend/dist/server.js",
     "build:backend": "tsc -p backend/tsconfig.json",
-    "build:frontend": "cd frontend && yarn && yarn build",
+    "build:frontend": "NODE_ENV=production cd frontend && yarn && yarn build",
     "copy-cobol": "cp -r ./backend/cobol ./backend/dist/cobol"
   },
   "dependencies": {

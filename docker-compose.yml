@@ -1,36 +1,27 @@
-version: '3.1'
+version: '3.8'
 
 services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - db
+
   db:
     image: postgres:latest
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db-data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: cobolexamplepw
       POSTGRES_DB: cobolexample
     ports:
       - '5432:5432'
-# For DB2
-# not supporting ARM using Docker
-# https://github.com/Shiou-Ju/cobol-account-management/issues/1
 
-# version: '3.1'
-
-# services:
-#   db2:
-#     image: ibmcom/db2
-#     environment:
-#       DB2INST1_PASSWORD: db2inst1_password
-#       LICENSE: accept
-#       DBNAME: testdb
-#     ports:
-#       - '50000:50000'
-#     container_name: 'db2_container'
-#     # Optional: Set a volume for DB2 data persistence
-#     volumes:
-#       - db2_data_volume:/database
-#     # Use this command to automatically create a database on startup (optional)
-#     command: db2start
-
-# volumes:
-#   db2_data_volume:
+volumes:
+  db-data:

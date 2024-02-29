@@ -158,6 +158,14 @@ WHERE rn = 1;
 
   const cobolFileName = path.join(outputDir, 'ProcessTransaction');
 
+  try {
+    const { stdout: versionStdout } = await execAsync('cobc --version');
+    console.log(`COBOL Compiler Version:\n\n${versionStdout}`);
+  } catch (versionError) {
+    console.error(`Error getting COBOL compiler version: ${versionError}`);
+    return;
+  }
+
   const command = `echo "${userNameToCobol}\n${currentBalance}\n${transaction}\n${transactionTypeToCobol}" | cobc -o ${cobolFileName} -xj ${cobolFilePath}`;
 
   try {
