@@ -21,6 +21,10 @@ const routes = [
     component: TransactionForm,
     props: true,
   },
+  {
+    path: '/:catchAll(.*)',
+    redirect: '/',
+  },
 ];
 
 const router = createRouter({
