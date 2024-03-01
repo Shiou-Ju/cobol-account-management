@@ -38,7 +38,6 @@
           />
         </div>
 
-        <!-- TODO: make btn prettier -->
         <button type="submit">Submit</button>
       </div>
     </form>

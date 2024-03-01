@@ -11,9 +11,10 @@ import { promisify } from 'util';
 import path from 'path';
 import { existsSync, mkdirSync } from 'fs';
 
-function isValidTransactionType(type: string): type is TransactionType {
-  // TODO: if as is ok here
-  return VALID_TRANSACTION_TYPES.includes(type as TransactionType);
+function isValidTransactionType(
+  type: TransactionType,
+): type is TransactionType {
+  return VALID_TRANSACTION_TYPES.includes(type);
 }
 
 const execAsync = promisify(exec);
@@ -111,7 +112,6 @@ app.get('/api/users', async (_req, res) => {
 });
 
 app.post('/api/transaction', async (req, res) => {
-  // TODO: ts new feature? satisfy
   const { user, transaction, type } = req.body as TransactionPayload;
 
   const hasMissingData = !user || transaction === undefined || !type;

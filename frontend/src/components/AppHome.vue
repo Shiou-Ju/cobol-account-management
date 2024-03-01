@@ -5,7 +5,6 @@
       <div class="users-list">
         <ul>
           <li v-for="user in users" :key="user.user">
-            <!-- TODO: router is currently not working -->
             <router-link :to="`/user/${user.user}`">
               <p>
                 <strong>User: </strong>
