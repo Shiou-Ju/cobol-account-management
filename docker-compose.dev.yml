@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: cobolexamplepw
+      POSTGRES_DB: cobolexample
+    ports:
+      - '5432:5432'
+
+  redis:
+    image: redis:latest
+    ports:
+      - '6379:6379'
+
+volumes:
+  db-data:
