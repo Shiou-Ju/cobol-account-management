@@ -83,6 +83,18 @@ func (m *UserManager) GetUserState(name string) UserState {
 	return Available
 }
 
+func (m *UserManager) TryLockUser(name string) bool {
+	m.Mutex.Lock()
+	defer m.Mutex.Unlock()
+
+	user, exists := m.Users[name]
+	if !exists || user.State == Picked {
+		return false
+	}
+
+	user.State = Picked
+	return true
+}
 func AllUsersHandler(w http.ResponseWriter, _ *http.Request, dbpool *pgxpool.Pool, userManager *UserManager) {
 
 	const sql = `SELECT * FROM (
@@ -152,4 +164,63 @@ func GetUserStateHandler(w http.ResponseWriter, r *http.Request, userManager *Us
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		fmt.Fprintf(w, "Failed to encode response to JSON: %v\n", err)
 	}
+}
+
+func SetUserStateHandler(w http.ResponseWriter, r *http.Request, userManager *UserManager) {
+	var requestData struct {
+		Username string `json:"username"`
+		Status   string `json:"status"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	var isInvalidBody = requestData.Username == "" || (requestData.Status != "picked" && requestData.Status != "available")
+
+	if isInvalidBody {
+		http.Error(w, "Invalid username or status", http.StatusBadRequest)
+		return
+	}
+
+	var newState UserState
+	if requestData.Status == "picked" {
+		newState = Picked
+	} else {
+		newState = Available
+	}
+	userManager.SetUserState(requestData.Username, newState)
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "User state updated successfully")
+}
+
+func TryLockUserHandler(w http.ResponseWriter, r *http.Request, userManager *UserManager) {
+	var requestData struct {
+		Username string `json:"username"`
+	}
+	err := json.NewDecoder(r.Body).Decode(&requestData)
+	if err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if requestData.Username == "" {
+		http.Error(w, "Username is required", http.StatusBadRequest)
+		return
+	}
+
+	if !userManager.Exists(requestData.Username) {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	if !userManager.TryLockUser(requestData.Username) {
+		http.Error(w, "User already locked", http.StatusConflict)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "User locked successfully")
 }

@@ -35,6 +35,14 @@ func main() {
 		usermanagement.GetUserStateHandler(w, r, userManager)
 	})
 
+	http.HandleFunc("/set-user-state", func(w http.ResponseWriter, r *http.Request) {
+		usermanagement.SetUserStateHandler(w, r, userManager)
+	})
+
+	http.HandleFunc("/try-lock-user", func(w http.ResponseWriter, r *http.Request) {
+		usermanagement.TryLockUserHandler(w, r, userManager)
+	})
+
 	fmt.Println("Server is running on port 3001")
 	http.ListenAndServe(":3001", nil)
 }
