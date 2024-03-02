@@ -6,8 +6,12 @@ import (
 	"net/http"
 	"os"
 
+	chatroom "chatroom/redischatroom"
 	"chatroom/usermanagement"
 
+	socket "chatroom/websocket"
+
+	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -24,6 +28,15 @@ func main() {
 	}
 
 	defer dbpool.Close()
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "",
+		DB:       0,
+	})
+
+	chatroom.PublishMessage(rdb, "chatroom", "Hello, World!")
+	chatroom.SubscribeMessages(rdb, "chatroom")
 
 	populateUserManager(dbpool, userManager)
 
@@ -42,6 +55,12 @@ func main() {
 	http.HandleFunc("/try-lock-user", func(w http.ResponseWriter, r *http.Request) {
 		usermanagement.TryLockUserHandler(w, r, userManager)
 	})
+
+	http.HandleFunc("/send-message", func(w http.ResponseWriter, r *http.Request) {
+		chatroom.SendChatMessage(w, r, rdb)
+	})
+
+	http.HandleFunc("/ws", socket.HandleConnections)
 
 	fmt.Println("Server is running on port 3001")
 	http.ListenAndServe(":3001", nil)
