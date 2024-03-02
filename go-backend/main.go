@@ -2,16 +2,18 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
-	"time"
+
+	"chatroom/usermanagement"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 func main() {
+	userManager := usermanagement.NewUserManager()
+
 	var databaseURL string = "postgres://postgres:cobolexamplepw@localhost:5432/cobolexample"
 
 	dbpool, err := pgxpool.Connect(context.Background(), databaseURL)
@@ -23,53 +25,37 @@ func main() {
 
 	defer dbpool.Close()
 
+	populateUserManager(dbpool, userManager)
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		allUsersHandler(w, r, dbpool)
+		usermanagement.AllUsersHandler(w, r, dbpool, userManager)
+	})
+
+	http.HandleFunc("/user-state", func(w http.ResponseWriter, r *http.Request) {
+		usermanagement.GetUserStateHandler(w, r, userManager)
 	})
 
 	fmt.Println("Server is running on port 3001")
 	http.ListenAndServe(":3001", nil)
 }
 
-type Transaction struct {
-	User        string
-	Transaction float64
-	Balance     float64
-	Date        time.Time
-}
-
-func allUsersHandler(w http.ResponseWriter, _ *http.Request, dbpool *pgxpool.Pool) {
-	const sql = `SELECT * FROM (
-		SELECT 
-			transactions.*,
-			ROW_NUMBER() OVER(PARTITION BY "user" ORDER BY "date" DESC) as rn
-		FROM 
-			transactions
-	) t
-	WHERE t.rn = 1;`
+func populateUserManager(dbpool *pgxpool.Pool, userManager *usermanagement.UserManager) {
+	const sql = `SELECT DISTINCT "user" FROM transactions;`
 
 	rows, err := dbpool.Query(context.Background(), sql)
 	if err != nil {
-		fmt.Fprintf(w, "Query failed: %v\n", err)
+		fmt.Println("Query failed:", err)
 		return
 	}
 	defer rows.Close()
 
-	var transactions []Transaction
-
 	for rows.Next() {
-		var t Transaction
-		var rn int
-		err := rows.Scan(&t.User, &t.Transaction, &t.Balance, &t.Date, &rn)
+		var userName string
+		err := rows.Scan(&userName)
 		if err != nil {
-			fmt.Fprintf(w, "Failed to scan row: %v\n", err)
-			return
+			fmt.Println("Failed to scan row:", err)
+			continue
 		}
-		transactions = append(transactions, t)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(transactions); err != nil {
-		fmt.Fprintf(w, "Failed to encode transactions to JSON: %v\n", err)
+		userManager.AddUser(userName)
 	}
 }
