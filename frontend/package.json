@@ -20,6 +20,7 @@
     "@typescript-eslint/parser": "^7.0.2",
     "@vue/cli-plugin-babel": "~5.0.0",
     "@vue/cli-plugin-eslint": "~5.0.0",
+    "@vue/cli-plugin-typescript": "^5.0.8",
     "@vue/cli-service": "~5.0.0",
     "@vue/eslint-config-typescript": "^12.0.0",
     "eslint": "^8.57.0",
@@ -34,12 +35,11 @@
     },
     "extends": [
       "plugin:vue/vue3-essential",
-      "eslint:recommended"
+      "@vue/typescript/recommended"
     ],
     "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {}
+      "ecmaVersion": 2020
+    }
   },
   "browserslist": [
     "> 1%",

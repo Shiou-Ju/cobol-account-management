@@ -45,7 +45,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRoute } from 'vue-router';
@@ -69,8 +69,8 @@ export default {
       try {
         const { data } = await axios.get(`/api/user/${userName}`);
         userData.value = data;
-      } catch (error) {
-        console.error('API call failed:', error);
+      } catch (err: unknown) {
+        console.error('API call failed:', err);
         error.value = 'Failed to load user data.';
       }
     });
@@ -94,9 +94,14 @@ export default {
           userData.value.balance = newBalance;
           resetFields();
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('Transaction failed:', err);
-        error.value = err.response?.data || 'Transaction failed.';
+
+        if (axios.isAxiosError(err)) {
+          error.value = err.response?.data || 'Transaction failed.';
+        } else {
+          error.value = 'An unexpected error occurred.';
+        }
       }
     };
 
