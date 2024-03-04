@@ -7,6 +7,7 @@ import (
 	"os"
 
 	chatroom "chatroom/redischatroom"
+	"chatroom/subscribemessage"
 	"chatroom/usermanagement"
 
 	socket "chatroom/websocket"
@@ -35,8 +36,17 @@ func main() {
 		DB:       0,
 	})
 
-	chatroom.PublishMessage(rdb, "chatroom", "Hello, World!")
-	chatroom.SubscribeMessages(rdb, "chatroom")
+	var ctx = context.Background()
+
+	isRedisChannelDone := make(chan bool)
+
+	go func() {
+		chatroom.PublishMessage(ctx, rdb, chatroom.RedisChannelName, "Hello, World!")
+		isRedisChannelDone <- true
+	}()
+
+	<-isRedisChannelDone
+	go subscribemessage.SubscribeMessages(ctx, rdb, chatroom.RedisChannelName)
 
 	populateUserManager(dbpool, userManager)
 
@@ -57,10 +67,12 @@ func main() {
 	})
 
 	http.HandleFunc("/send-message", func(w http.ResponseWriter, r *http.Request) {
-		chatroom.SendChatMessage(w, r, rdb)
+		chatroom.SendChatMessage(ctx, w, r, rdb)
 	})
 
-	http.HandleFunc("/ws", socket.HandleConnections)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		socket.HandleConnections(w, r, ctx, rdb, "chatroom")
+	})
 
 	fmt.Println("Server is running on port 3001")
 	http.ListenAndServe(":3001", nil)

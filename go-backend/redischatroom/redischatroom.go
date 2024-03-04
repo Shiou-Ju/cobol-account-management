@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/go-redis/redis/v8"
@@ -17,9 +16,10 @@ type ChatMessage struct {
 	Time     int64  `json:"time"`
 }
 
-var ctx = context.Background()
+const RedisChannelName = "chatroom"
 
-func PublishMessage(rdb *redis.Client, channel, message string) error {
+func PublishMessage(ctx context.Context, rdb *redis.Client, channel, message string) error {
+	// TODO: or maybe this is async, leading to subscribe not receiving the channel created.
 	err := rdb.Publish(ctx, channel, message).Err()
 
 	if err != nil {
@@ -31,29 +31,7 @@ func PublishMessage(rdb *redis.Client, channel, message string) error {
 	return nil
 }
 
-func SubscribeMessages(rdb *redis.Client, channel string) {
-	sub := rdb.Subscribe(ctx, channel)
-	defer sub.Close()
-
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-
-	go func() {
-		defer wg.Done()
-		for {
-			select {
-			case msg := <-sub.Channel():
-				fmt.Println("Received message:", msg.Payload)
-			case <-ctx.Done():
-				fmt.Println("Subscription stopped")
-				return
-			}
-		}
-	}()
-	wg.Wait()
-}
-
-func SendChatMessage(w http.ResponseWriter, r *http.Request, rdb *redis.Client) {
+func SendChatMessage(ctx context.Context, w http.ResponseWriter, r *http.Request, rdb *redis.Client) {
 	var msg ChatMessage
 	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
@@ -68,7 +46,7 @@ func SendChatMessage(w http.ResponseWriter, r *http.Request, rdb *redis.Client) 
 		return
 	}
 
-	if err := PublishMessage(rdb, "chatroom", string(messageJSON)); err != nil {
+	if err := PublishMessage(ctx, rdb, RedisChannelName, string(messageJSON)); err != nil {
 		fmt.Printf("Error publishing message: %v\n", err)
 		http.Error(w, "Failed to publish message", http.StatusInternalServerError)
 		return
