@@ -50,25 +50,25 @@ func main() {
 
 	populateUserManager(dbpool, userManager)
 
-	http.HandleFunc("/go-api/users", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/go-api/users", setupCORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		usermanagement.AllUsersHandler(w, r, dbpool, userManager)
-	})
+	})))
 
-	http.HandleFunc("/go-api/user-state", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/go-api/user-state", setupCORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		usermanagement.GetUserStateHandler(w, r, userManager)
-	})
+	})))
 
-	http.HandleFunc("/go-api/set-user-state", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/go-api/set-user-state", setupCORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		usermanagement.SetUserStateHandler(w, r, userManager)
-	})
+	})))
 
-	http.HandleFunc("/go-api/try-lock-user", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/go-api/try-lock-user", setupCORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		usermanagement.TryLockUserHandler(w, r, userManager)
-	})
+	})))
 
-	http.HandleFunc("/go-api/send-message", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/go-api/send-message", setupCORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		chatroom.SendChatMessage(ctx, w, r, rdb)
-	})
+	})))
 
 	http.HandleFunc("/go-api/ws", func(w http.ResponseWriter, r *http.Request) {
 		socket.HandleConnections(w, r, ctx, rdb, "chatroom")
@@ -97,4 +97,18 @@ func populateUserManager(dbpool *pgxpool.Pool, userManager *usermanagement.UserM
 		}
 		userManager.AddUser(userName)
 	}
+}
+
+func setupCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+		if r.Method == "OPTIONS" {
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
