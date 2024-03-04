@@ -21,12 +21,12 @@
 <!-- <script lang="ts" setup> -->
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 
 const unknownUserConst = 'unknown-user' as const;
 
 export interface ChatMessage {
-  // TODO: shall be unique id
-  id: number;
+  id: string;
   text: string;
   user: string;
   time: string;
@@ -45,6 +45,8 @@ export default defineComponent({
     const messages = ref<ChatMessage[]>([]);
     const inputMessage = ref<string>('');
     const isConnected = ref<boolean>(false);
+
+    let isSendingTooFast = false;
 
     const connect = () => {
       // TODO: wss://
@@ -66,8 +68,7 @@ export default defineComponent({
           : '沒有顯示時間';
 
         const newMessage: ChatMessage = {
-          // TODO: use UUID
-          id: Date.now(),
+          id: uuidv4(),
           text: receivedMessage.message,
           user: receivedMessage.username || unknownUserConst,
           time: formattedTime,
@@ -106,7 +107,9 @@ export default defineComponent({
     const sendMessage = () => {
       const canSend = inputMessage.value.trim() && isConnected.value;
 
-      if (canSend) {
+      if (canSend && !isSendingTooFast) {
+        isSendingTooFast = true;
+
         // TODO: add Username
         const reqBody = { message: inputMessage.value };
 
@@ -115,6 +118,11 @@ export default defineComponent({
         const resetInput = '';
 
         inputMessage.value = resetInput;
+
+        const sendingGap = 100;
+        setTimeout(() => {
+          isSendingTooFast = false;
+        }, sendingGap);
       }
     };
 
