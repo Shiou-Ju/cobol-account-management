@@ -49,8 +49,8 @@ export default defineComponent({
     let isSendingTooFast = false;
 
     const connect = () => {
-      // TODO: wss://
-      ws.value = new WebSocket('ws://localhost:3001/ws');
+      // TODO: wss:// ?
+      ws.value = new WebSocket('ws://localhost:3001/go-api/ws');
 
       ws.value.onopen = () => {
         console.log('WebSocket Connected');

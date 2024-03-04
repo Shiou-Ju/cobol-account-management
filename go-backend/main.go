@@ -50,27 +50,27 @@ func main() {
 
 	populateUserManager(dbpool, userManager)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/go-api/users", func(w http.ResponseWriter, r *http.Request) {
 		usermanagement.AllUsersHandler(w, r, dbpool, userManager)
 	})
 
-	http.HandleFunc("/user-state", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/go-api/user-state", func(w http.ResponseWriter, r *http.Request) {
 		usermanagement.GetUserStateHandler(w, r, userManager)
 	})
 
-	http.HandleFunc("/set-user-state", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/go-api/set-user-state", func(w http.ResponseWriter, r *http.Request) {
 		usermanagement.SetUserStateHandler(w, r, userManager)
 	})
 
-	http.HandleFunc("/try-lock-user", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/go-api/try-lock-user", func(w http.ResponseWriter, r *http.Request) {
 		usermanagement.TryLockUserHandler(w, r, userManager)
 	})
 
-	http.HandleFunc("/send-message", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/go-api/send-message", func(w http.ResponseWriter, r *http.Request) {
 		chatroom.SendChatMessage(ctx, w, r, rdb)
 	})
 
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/go-api/ws", func(w http.ResponseWriter, r *http.Request) {
 		socket.HandleConnections(w, r, ctx, rdb, "chatroom")
 	})
 
