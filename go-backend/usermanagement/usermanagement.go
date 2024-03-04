@@ -31,6 +31,8 @@ type User struct {
 	Mutex sync.Mutex
 }
 
+// TODO: maybe rely on websocket to unlock user
+// map[0x140001ad340:true]
 type UserManager struct {
 	Users map[string]*User
 	Mutex sync.RWMutex
@@ -92,9 +94,24 @@ func (m *UserManager) TryLockUser(name string) bool {
 		return false
 	}
 
+	fmt.Printf("Locking user in TryLockUser %s\n", name)
 	user.State = Picked
 	return true
 }
+
+func (m *UserManager) TryUnlockUser(name string) bool {
+	m.Mutex.Lock()
+	defer m.Mutex.Unlock()
+
+	user, exists := m.Users[name]
+	if !exists {
+		return false
+	}
+
+	user.State = Available
+	return true
+}
+
 func AllUsersHandler(w http.ResponseWriter, _ *http.Request, dbpool *pgxpool.Pool, userManager *UserManager) {
 
 	const sql = `SELECT * FROM (
@@ -125,7 +142,8 @@ func AllUsersHandler(w http.ResponseWriter, _ *http.Request, dbpool *pgxpool.Poo
 		}
 		transactions = append(transactions, t)
 
-		userManager.AddUser(t.User)
+		// TODO: this will cause user status reset
+		// userManager.AddUser(t.User)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -201,6 +219,10 @@ func TryLockUserHandler(w http.ResponseWriter, r *http.Request, userManager *Use
 		Username string `json:"username"`
 	}
 	err := json.NewDecoder(r.Body).Decode(&requestData)
+
+	fmt.Println("TryLockUserHandler requestded user")
+	fmt.Println(requestData)
+
 	if err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
 		return
@@ -223,4 +245,32 @@ func TryLockUserHandler(w http.ResponseWriter, r *http.Request, userManager *Use
 
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprint(w, "User locked successfully")
+}
+
+func TryUnlockUserHandler(w http.ResponseWriter, r *http.Request, userManager *UserManager) {
+	var requestData struct {
+		Username string `json:"username"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&requestData); err != nil {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if requestData.Username == "" {
+		http.Error(w, "Username is required", http.StatusBadRequest)
+		return
+	}
+
+	if !userManager.Exists(requestData.Username) {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	if success := userManager.TryUnlockUser(requestData.Username); !success {
+		http.Error(w, "Failed to unlock user", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "User unlocked successfully")
 }

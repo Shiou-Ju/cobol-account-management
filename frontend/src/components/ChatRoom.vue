@@ -22,6 +22,8 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
+import { userState } from '../states/userState';
+import axios from 'axios';
 
 const unknownUserConst = 'unknown-user' as const;
 
@@ -136,6 +138,19 @@ export default defineComponent({
       sendMessage,
       isConnected,
     };
+  },
+
+  // TODO: maybe no need here
+  async beforeRouteLeave(_to, _from, next) {
+    try {
+      await axios.post('http://localhost:3001/go-api/try-unlock-user', {
+        username: userState.selectedUser,
+      });
+      next();
+    } catch (error) {
+      console.error('Error unlocking the user:', error);
+      next();
+    }
   },
 });
 </script>

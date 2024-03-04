@@ -66,6 +66,10 @@ func main() {
 		usermanagement.TryLockUserHandler(w, r, userManager)
 	})))
 
+	http.Handle("/go-api/try-unlock-user", setupCORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		usermanagement.TryUnlockUserHandler(w, r, userManager)
+	})))
+
 	http.Handle("/go-api/send-message", setupCORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		chatroom.SendChatMessage(ctx, w, r, rdb)
 	})))
