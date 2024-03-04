@@ -25,7 +25,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { userState } from '../states/userState';
 import axios from 'axios';
 
-const unknownUserConst = 'unknown-user' as const;
+const defaultUnknownUserDisplayName = 'unknown-user' as const;
 
 export interface ChatMessage {
   id: string;
@@ -39,6 +39,12 @@ interface ReceivedMessage {
   message: string;
   time: number;
 }
+
+type PublishMessageRequestBody = {
+  username: string;
+  message: string;
+  time: number;
+};
 
 export default defineComponent({
   name: 'ChatRoom',
@@ -60,7 +66,18 @@ export default defineComponent({
       };
 
       ws.value.onmessage = (event: MessageEvent) => {
-        const receivedMessage = JSON.parse(event.data) as ReceivedMessage;
+        const parsedDate = JSON.parse(event.data);
+
+        // const isSystemInfo = parsedDate.isMessage === 'false';
+
+        // console.log(event.data);
+
+        // if (isSystemInfo) {
+        //   // TODO: save this to mem
+        //   return;
+        // }
+
+        const receivedMessage = parsedDate as ReceivedMessage;
 
         const hasTimeReceived =
           receivedMessage.time !== 0 && receivedMessage.time;
@@ -72,7 +89,7 @@ export default defineComponent({
         const newMessage: ChatMessage = {
           id: uuidv4(),
           text: receivedMessage.message,
-          user: receivedMessage.username || unknownUserConst,
+          user: receivedMessage.username || defaultUnknownUserDisplayName,
           time: formattedTime,
         };
 
@@ -109,11 +126,16 @@ export default defineComponent({
     const sendMessage = () => {
       const canSend = inputMessage.value.trim() && isConnected.value;
 
+      const username = userState.selectedUser;
+
       if (canSend && !isSendingTooFast) {
         isSendingTooFast = true;
 
-        // TODO: add Username
-        const reqBody = { message: inputMessage.value };
+        const reqBody: PublishMessageRequestBody = {
+          message: inputMessage.value,
+          username,
+          time: Date.now(),
+        };
 
         ws.value && ws.value.send(JSON.stringify(reqBody));
 

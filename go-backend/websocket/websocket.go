@@ -35,10 +35,39 @@ func HandleConnections(w http.ResponseWriter, r *http.Request, ctx context.Conte
 	lock.Lock()
 	var newClientStatus = true
 	clients[ws] = newClientStatus
-	fmt.Printf("clients\n")
+
+	// connectionAddress := fmt.Sprintf("%p", ws)
+	// hash := sha256.Sum256([]byte(connectionAddress))
+	// // TODO: security issue
+	// hashedAddress := hex.EncodeToString(hash[:])
+
+	// initialMessage := map[string]string{"connection": hashedAddress, "isMessage": "false"}
+
+	// err = ws.WriteJSON(initialMessage)
+	// if err != nil {
+	// 	fmt.Printf("Failed to send initial message: %v\n", err)
+	// }
+
+	fmt.Printf("clients map:\n")
 	fmt.Print(clients)
-	fmt.Printf("\n")
+	fmt.Printf("clients map finished\n")
 	lock.Unlock()
+
+	// TODO: maybe not now
+	// go func(conn *websocket.Conn) {
+	// 	ticker := time.NewTicker(5 * time.Second)
+	// 	defer ticker.Stop()
+
+	// 	for {
+	// 		select {
+	// 		case <-ticker.C:
+	// 			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+	// 				fmt.Printf("Failed to send ping: %v", err)
+	// 				return
+	// 			}
+	// 		}
+	// 	}
+	// }(ws)
 
 	for {
 		var msg redisChatroom.ChatMessage
@@ -48,7 +77,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request, ctx context.Conte
 
 			delete(clients, ws)
 			lock.Unlock()
-			fmt.Printf("error: %v", err)
+			fmt.Printf("error in HandleConnections: %v", err)
 			break
 		}
 		fmt.Printf("Received message in HandleConnections: %+v\n", msg)
