@@ -68,14 +68,14 @@ export default defineComponent({
       ws.value.onmessage = (event: MessageEvent) => {
         const parsedDate = JSON.parse(event.data);
 
-        // const isSystemInfo = parsedDate.isMessage === 'false';
+        const isSystemInfo = parsedDate.isMessage === 'false';
 
-        // console.log(event.data);
+        console.log(event.data);
 
-        // if (isSystemInfo) {
-        //   // TODO: save this to mem
-        //   return;
-        // }
+        if (isSystemInfo) {
+          // TODO: save this to mem
+          return;
+        }
 
         const receivedMessage = parsedDate as ReceivedMessage;
 

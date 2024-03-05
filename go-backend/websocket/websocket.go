@@ -2,10 +2,13 @@ package websocketconnection
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	redisChatroom "chatroom/redischatroom"
 
@@ -36,38 +39,38 @@ func HandleConnections(w http.ResponseWriter, r *http.Request, ctx context.Conte
 	var newClientStatus = true
 	clients[ws] = newClientStatus
 
-	// connectionAddress := fmt.Sprintf("%p", ws)
-	// hash := sha256.Sum256([]byte(connectionAddress))
-	// // TODO: security issue
-	// hashedAddress := hex.EncodeToString(hash[:])
+	connectionAddress := fmt.Sprintf("%p", ws)
+	hash := sha256.Sum256([]byte(connectionAddress))
+	// TODO: security issue
+	hashedAddress := hex.EncodeToString(hash[:])
 
-	// initialMessage := map[string]string{"connection": hashedAddress, "isMessage": "false"}
+	initialMessage := map[string]string{"connection": hashedAddress, "isMessage": "false"}
 
-	// err = ws.WriteJSON(initialMessage)
-	// if err != nil {
-	// 	fmt.Printf("Failed to send initial message: %v\n", err)
-	// }
+	err = ws.WriteJSON(initialMessage)
+	if err != nil {
+		fmt.Printf("Failed to send initial message: %v\n", err)
+	}
 
 	fmt.Printf("clients map:\n")
 	fmt.Print(clients)
 	fmt.Printf("clients map finished\n")
 	lock.Unlock()
 
-	// TODO: maybe not now
-	// go func(conn *websocket.Conn) {
-	// 	ticker := time.NewTicker(5 * time.Second)
-	// 	defer ticker.Stop()
+	go func(conn *websocket.Conn) {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
 
-	// 	for {
-	// 		select {
-	// 		case <-ticker.C:
-	// 			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-	// 				fmt.Printf("Failed to send ping: %v", err)
-	// 				return
-	// 			}
-	// 		}
-	// 	}
-	// }(ws)
+		// TODO: for select warning
+		for {
+			select {
+			case <-ticker.C:
+				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+					fmt.Printf("Failed to send ping: %v", err)
+					return
+				}
+			}
+		}
+	}(ws)
 
 	for {
 		var msg redisChatroom.ChatMessage
