@@ -10,12 +10,21 @@
       </li>
     </ul>
   </div>
-  <input v-if="isConnected" v-model="inputMessage" @keyup.enter="sendMessage" />
-  <p v-if="!isConnected">Please refresh page</p>
-  <button v-if="isConnected" @click="sendMessage">Send</button>
-  <button v-if="!isConnected" disabled @click="sendMessage">
-    chat function not ready
-  </button>
+  <div class="message-input-area">
+    <input
+      v-if="isConnected"
+      v-model="inputMessage"
+      @keyup.enter="sendMessage"
+      class="message-input"
+    />
+    <p v-if="!isConnected">Please refresh page</p>
+    <button v-if="isConnected" @click="sendMessage" class="send-button">
+      Send
+    </button>
+    <button v-if="!isConnected" disabled @click="sendMessage">
+      chat function not ready
+    </button>
+  </div>
 </template>
 
 <!-- TODO: should not add `setup`, it return any type -->
@@ -185,7 +194,6 @@ export default defineComponent({
     };
   },
 
-  // TODO: maybe no need here
   async beforeRouteLeave(_to, _from, next) {
     try {
       await axios.post('http://localhost:3001/go-api/try-unlock-user', {
@@ -206,13 +214,15 @@ export default defineComponent({
   flex-direction: column;
   max-width: 600px;
   margin: auto;
+  border: 1px solid #ccc;
+  padding-bottom: 10px;
 }
 
 .message-list {
   list-style: none;
   padding: 0;
   overflow-y: auto;
-  max-height: 400px;
+  min-height: 400px;
 }
 
 .message {
@@ -242,8 +252,16 @@ export default defineComponent({
 }
 
 .message-input {
-  display: flex;
-  margin-top: 10px;
+  flex-grow: 1;
+  border: 2px solid #007bff;
+  border-radius: 20px;
+  padding: 5px 15px;
+  margin-right: 10px;
+  margin-top: 15px;
+}
+
+.send-button:hover {
+  background-color: #0056b3;
 }
 
 .message-input input {
@@ -253,5 +271,14 @@ export default defineComponent({
 
 .message-input button {
   padding: 5px 10px;
+}
+
+.send-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 5px 15px;
+  cursor: pointer;
 }
 </style>
