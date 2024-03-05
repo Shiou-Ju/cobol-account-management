@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"chatroom/connectionmanagement"
 	chatroom "chatroom/redischatroom"
 	"chatroom/subscribemessage"
 	"chatroom/usermanagement"
@@ -18,6 +19,8 @@ import (
 
 func main() {
 	userManager := usermanagement.NewUserManager()
+
+	connectionManager := connectionmanagement.NewUserConnectionManager()
 
 	var databaseURL string = "postgres://postgres:cobolexamplepw@localhost:5432/cobolexample"
 
@@ -70,12 +73,16 @@ func main() {
 		usermanagement.TryUnlockUserHandler(w, r, userManager)
 	})))
 
+	http.Handle("/go-api/add-connection-to-user", setupCORS((http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		connectionManager.HandleAddConnectionToUser(w, r)
+	}))))
+
 	http.Handle("/go-api/send-message", setupCORS(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		chatroom.SendChatMessage(ctx, w, r, rdb)
 	})))
 
 	http.HandleFunc("/go-api/ws", func(w http.ResponseWriter, r *http.Request) {
-		socket.HandleConnections(w, r, ctx, rdb, "chatroom")
+		socket.HandleConnections(w, r, ctx, rdb, chatroom.RedisChannelName, userManager, connectionManager)
 	})
 
 	fmt.Println("Server is running on port 3001")

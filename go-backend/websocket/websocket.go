@@ -10,7 +10,9 @@ import (
 	"sync"
 	"time"
 
+	"chatroom/connectionmanagement"
 	redisChatroom "chatroom/redischatroom"
+	"chatroom/usermanagement"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/gorilla/websocket"
@@ -27,7 +29,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func HandleConnections(w http.ResponseWriter, r *http.Request, ctx context.Context, rdb *redis.Client, channel string) {
+func HandleConnections(w http.ResponseWriter, r *http.Request, ctx context.Context, rdb *redis.Client, channel string, userManager *usermanagement.UserManager, connectionManager *connectionmanagement.UserConnectionManager) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -56,7 +58,7 @@ func HandleConnections(w http.ResponseWriter, r *http.Request, ctx context.Conte
 	fmt.Printf("clients map finished\n")
 	lock.Unlock()
 
-	go func(conn *websocket.Conn) {
+	go func(conn *websocket.Conn, hashedAddress string) {
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
 
@@ -65,12 +67,15 @@ func HandleConnections(w http.ResponseWriter, r *http.Request, ctx context.Conte
 			select {
 			case <-ticker.C:
 				if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-					fmt.Printf("Failed to send ping: %v", err)
+					fmt.Printf("Failed to send ping to %s: %v\n", hashedAddress, err)
+
+					handleFailedPing(hashedAddress, userManager, connectionManager)
+
 					return
 				}
 			}
 		}
-	}(ws)
+	}(ws, hashedAddress)
 
 	for {
 		var msg redisChatroom.ChatMessage
@@ -111,4 +116,27 @@ func BroadcastMessage(message string) {
 			delete(clients, client)
 		}
 	}
+}
+
+// TODO: add more error logs
+func handleFailedPing(hashedAddress string, userManager *usermanagement.UserManager, connectionManager *connectionmanagement.UserConnectionManager) {
+	fmt.Printf("Handling failed ping for connection: %s\n", hashedAddress)
+
+	username, isUserFindingSuccess := connectionManager.GetUserByConnection(hashedAddress)
+
+	if !isUserFindingSuccess {
+		fmt.Println("faliled to find user name using hash")
+	}
+
+	isUnlockSuccess := userManager.TryUnlockUser(username)
+
+	fmt.Println("TryUnlockUser success?: ")
+	fmt.Println(isUnlockSuccess)
+	fmt.Println("")
+
+	connectionManager.RemoveConnectionByUser(username)
+
+	fmt.Println("removed user from connection map")
+	fmt.Println("")
+
 }

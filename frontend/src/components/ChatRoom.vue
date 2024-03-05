@@ -10,7 +10,8 @@
       </li>
     </ul>
   </div>
-  <input v-model="inputMessage" @keyup.enter="sendMessage" />
+  <input v-if="isConnected" v-model="inputMessage" @keyup.enter="sendMessage" />
+  <p v-if="!isConnected">Please refresh page</p>
   <button v-if="isConnected" @click="sendMessage">Send</button>
   <button v-if="!isConnected" disabled @click="sendMessage">
     chat function not ready
@@ -24,6 +25,7 @@ import { defineComponent, ref, onMounted } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { userState } from '../states/userState';
 import axios from 'axios';
+import router from '../router';
 
 const defaultUnknownUserDisplayName = 'unknown-user' as const;
 
@@ -73,7 +75,25 @@ export default defineComponent({
         console.log(event.data);
 
         if (isSystemInfo) {
-          // TODO: save this to mem
+          (async () => {
+            try {
+              const connection = parsedDate.connection;
+
+              const response = await axios.post(
+                'http://localhost:3001/go-api/add-connection-to-user',
+                {
+                  username: userState.selectedUser,
+                  connection: connection,
+                },
+              );
+              console.log('Connection info saved:', response.data);
+            } catch (error) {
+              console.error('Error saving connection info:', error);
+
+              console.log('return to user select');
+              router.push('/chat');
+            }
+          })();
           return;
         }
 
@@ -113,9 +133,12 @@ export default defineComponent({
         console.log('WebSocket Disconnected');
         isConnected.value = false;
 
-        const reconnectDelay = 1000;
+        userState.isUserSelectedAndVerified = false;
+        userState.selectedUser = '';
 
-        setTimeout(connect, reconnectDelay);
+        // TODO: consider reconnect
+        // const reconnectDelay = 1000;
+        // setTimeout(connect, reconnectDelay);
       };
 
       ws.value.onerror = (error: Event) => {
