@@ -1,7 +1,11 @@
 <template>
   <div class="navbar-container">
     <nav class="navbar">
-      <router-link to="/" class="navbar-brand">User List</router-link>
+      <h1 class="navbar-title">FinChat</h1>
+      <router-link to="/" class="navbar-brand">Transaction</router-link>
+      <router-link to="/select-user" class="navbar-brand"
+        >Chat Room</router-link
+      >
     </nav>
   </div>
 </template>
@@ -20,10 +24,19 @@ export default {
 
 .navbar {
   background-color: beige;
-  padding: 0.5rem 1rem;
+  padding: 0 1rem;
   box-shadow: 0 0.1rem 0.2rem rgba(0, 0, 0, 0.1);
   text-align: left;
   width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.navbar-title {
+  flex-grow: 1;
+  color: #007bff;
+  margin-right: auto;
+  padding: 0.5rem 0;
 }
 
 .navbar-brand {
@@ -32,7 +45,9 @@ export default {
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
+  margin-right: 1rem;
   transition: background-color 0.2s;
+  margin-left: 1rem;
 }
 
 .navbar-brand:hover {
