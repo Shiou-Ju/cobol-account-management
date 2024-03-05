@@ -1,6 +1,10 @@
 <template>
   <div>
-    <button @click="showModal = true">Select User</button>
+    <div class="button-container">
+      <button @click="showModal = true" class="select-user-button">
+        Select User
+      </button>
+    </div>
     <div v-if="showModal" class="modal">
       <div class="modal-content">
         <span class="close" @click="showModal = false">&times;</span>
@@ -176,8 +180,11 @@ export default defineComponent({
   top: 0;
   width: 100%;
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
   background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal-content {
@@ -187,6 +194,7 @@ export default defineComponent({
   border: 1px solid #888;
   width: 80%;
   max-width: 800px;
+  min-width: 300px;
 }
 
 .close {
@@ -204,6 +212,7 @@ export default defineComponent({
 }
 
 li {
+  list-style-type: none;
   cursor: pointer;
   background-color: #f0f0f0;
   padding: 10px;
@@ -226,5 +235,25 @@ li:hover:not(.disabled-user) {
   background-color: #ffcccc;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.button-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.select-user-button {
+  padding: 10px 20px;
+  background-color: brown;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.select-user-button:hover {
+  background-color: purple;
 }
 </style>
