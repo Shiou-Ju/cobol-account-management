@@ -23,14 +23,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue';
+import { Ref, defineComponent, onMounted, onUnmounted, ref } from 'vue';
 import axios from 'axios';
 import { userState } from '../states/userState';
 import router from '@/router';
 
 type UserPickedStatus = 'available' | 'picked' | null;
 
-// TODO: new api?
 interface UserData {
   date: string;
   transaction: number;
@@ -46,7 +45,9 @@ interface ReceivedUser {
   User: string;
 }
 
-const fetchUserStatus = async (user: string): Promise<UserPickedStatus> => {
+const fetchSingleUserStatus = async (
+  user: string,
+): Promise<UserPickedStatus> => {
   try {
     const response = await axios.get(
       `http://localhost:3001/go-api/user-state?username=${user}`,
@@ -58,9 +59,9 @@ const fetchUserStatus = async (user: string): Promise<UserPickedStatus> => {
   }
 };
 
-const mapUserData = async (data: ReceivedUser[]): Promise<UserData[]> => {
+const mapUsersData = async (data: ReceivedUser[]): Promise<UserData[]> => {
   const usersWithStatusPromises = data.map(async (item) => {
-    const status = await fetchUserStatus(item.User);
+    const status = await fetchSingleUserStatus(item.User);
     return {
       date: item.Date,
       transaction: item.Transaction,
@@ -72,23 +73,35 @@ const mapUserData = async (data: ReceivedUser[]): Promise<UserData[]> => {
   return Promise.all(usersWithStatusPromises);
 };
 
+const fetchAndMapAllUsers = async (users: Ref<UserData[]>) => {
+  try {
+    const response = await axios.get('http://localhost:3001/go-api/users');
+    const mapped = await mapUsersData(response.data);
+    users.value = mapped;
+  } catch (error) {
+    console.error('Failed to fetch users:', error);
+  }
+};
+
 export default defineComponent({
   name: 'SelectUser',
   setup() {
     const users = ref<UserData[]>([]);
-    // TODO: default to show modal
     const showModal = ref(true);
-    // TODO: shall be fetch from backend
-    const userSelected = ref('');
+    const intervalId = ref<number | null>(null);
 
     onMounted(async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/go-api/users');
+      await fetchAndMapAllUsers(users);
 
-        const mapped = await mapUserData(response.data);
-        users.value = mapped;
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
+      intervalId.value = window.setInterval(async () => {
+        await fetchAndMapAllUsers(users);
+      }, 5000);
+    });
+
+    onUnmounted(() => {
+      if (intervalId.value !== null) {
+        clearInterval(intervalId.value);
+        intervalId.value = null;
       }
     });
 
@@ -114,6 +127,10 @@ export default defineComponent({
           userState.isUserSelectedAndVerified = true;
           showModal.value = false;
 
+          if (intervalId.value !== null) {
+            clearInterval(intervalId.value);
+            intervalId.value = null;
+          }
           router.push('/chat');
         } else {
           console.error(
@@ -146,7 +163,6 @@ export default defineComponent({
       users,
       selectUserHandler,
       showModal,
-      userSelected,
     };
   },
 });
