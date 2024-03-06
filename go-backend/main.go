@@ -22,7 +22,12 @@ func main() {
 
 	connectionManager := connectionmanagement.NewUserConnectionManager()
 
-	var databaseURL string = "postgres://postgres:cobolexamplepw@localhost:5432/cobolexample"
+	// var databaseURL string = "postgres://postgres:cobolexamplepw@localhost:5432/cobolexample"
+
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		databaseURL = "postgres://postgres:cobolexamplepw@localhost:5432/cobolexample"
+	}
 
 	dbpool, err := pgxpool.Connect(context.Background(), databaseURL)
 
@@ -33,8 +38,14 @@ func main() {
 
 	defer dbpool.Close()
 
+	redisAddress := os.Getenv("REDIS_ADDR")
+	if redisAddress == "" {
+		redisAddress = "localhost:6379"
+	}
+
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
+		// Addr:     "localhost:6379",
+		Addr:     redisAddress,
 		Password: "",
 		DB:       0,
 	})
