@@ -81,6 +81,8 @@ func main() {
 		chatroom.SendChatMessage(ctx, w, r, rdb)
 	})))
 
+	http.Handle("/go-api/disconnect-all", setupCORS(http.HandlerFunc(socket.DisconnectAllHandler)))
+
 	http.HandleFunc("/go-api/ws", func(w http.ResponseWriter, r *http.Request) {
 		socket.HandleConnections(w, r, ctx, rdb, chatroom.RedisChannelName, userManager, connectionManager)
 	})

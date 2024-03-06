@@ -140,3 +140,32 @@ func handleFailedPing(hashedAddress string, userManager *usermanagement.UserMana
 	fmt.Println("")
 
 }
+
+func DisconnectAll() bool {
+	lock.Lock()
+	defer lock.Unlock()
+
+	for client := range clients {
+		err := client.Close()
+		if err != nil {
+
+			return false
+		}
+		delete(clients, client)
+	}
+
+	return true
+}
+
+func DisconnectAllHandler(w http.ResponseWriter, r *http.Request) {
+	isSuccess := DisconnectAll()
+
+	if !isSuccess {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, "Error disconnecting all connections.")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "All connections have been successfully disconnected.")
+}
