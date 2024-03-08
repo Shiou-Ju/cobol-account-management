@@ -14,6 +14,7 @@ import TransactionForm from '@/components/TransactionForm.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
 import SelectUser from '@/components/SelectUser.vue';
 import axios from 'axios';
+import { apiBaseUrl } from '../config/config';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -75,7 +76,7 @@ router.beforeEach(async (to, from, next) => {
     next();
   } else {
     try {
-      await axios.post('http://localhost:3001/go-api/try-unlock-user', {
+      await axios.post(`${apiBaseUrl}/go-api/try-unlock-user`, {
         username: userState.selectedUser,
       });
 

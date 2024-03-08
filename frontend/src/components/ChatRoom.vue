@@ -35,6 +35,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { userState } from '../states/userState';
 import axios from 'axios';
 import router from '../router';
+import { apiBaseUrl, webSocketBaseUrl } from '../config/config';
 
 const defaultUnknownUserDisplayName = 'unknown-user' as const;
 
@@ -69,7 +70,7 @@ export default defineComponent({
 
     const connect = () => {
       // TODO: wss:// ?
-      ws.value = new WebSocket('ws://localhost:3001/go-api/ws');
+      ws.value = new WebSocket(`${webSocketBaseUrl}/go-api/ws`);
 
       ws.value.onopen = () => {
         console.log('WebSocket Connected');
@@ -89,7 +90,7 @@ export default defineComponent({
               const connection = parsedDate.connection;
 
               const response = await axios.post(
-                'http://localhost:3001/go-api/add-connection-to-user',
+                `${apiBaseUrl}/go-api/add-connection-to-user`,
                 {
                   username: userState.selectedUser,
                   connection: connection,
@@ -196,7 +197,7 @@ export default defineComponent({
 
   async beforeRouteLeave(_to, _from, next) {
     try {
-      await axios.post('http://localhost:3001/go-api/try-unlock-user', {
+      await axios.post(`${apiBaseUrl}/go-api/try-unlock-user`, {
         username: userState.selectedUser,
       });
       next();

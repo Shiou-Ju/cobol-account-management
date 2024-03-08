@@ -31,6 +31,7 @@ import { Ref, defineComponent, onMounted, onUnmounted, ref } from 'vue';
 import axios from 'axios';
 import { userState } from '../states/userState';
 import router from '@/router';
+import { apiBaseUrl } from '../config/config';
 
 type UserPickedStatus = 'available' | 'picked' | null;
 
@@ -54,7 +55,7 @@ const fetchSingleUserStatus = async (
 ): Promise<UserPickedStatus> => {
   try {
     const response = await axios.get(
-      `http://localhost:3001/go-api/user-state?username=${user}`,
+      `${apiBaseUrl}/go-api/user-state?username=${user}`,
     );
     return response.data.status;
   } catch (error) {
@@ -79,7 +80,7 @@ const mapUsersData = async (data: ReceivedUser[]): Promise<UserData[]> => {
 
 const fetchAndMapAllUsers = async (users: Ref<UserData[]>) => {
   try {
-    const response = await axios.get('http://localhost:3001/go-api/users');
+    const response = await axios.get(`${apiBaseUrl}/go-api/users`);
     const mapped = await mapUsersData(response.data);
     users.value = mapped;
   } catch (error) {
@@ -118,7 +119,7 @@ export default defineComponent({
 
       try {
         const lockResponse = await axios.post(
-          'http://localhost:3001/go-api/try-lock-user',
+          `${apiBaseUrl}/go-api/try-lock-user`,
           {
             username: user.user,
           },
