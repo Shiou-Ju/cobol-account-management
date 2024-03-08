@@ -13,6 +13,7 @@ import SingleUserInfo from '@/components/SingleUserInfo.vue';
 import TransactionForm from '@/components/TransactionForm.vue';
 import ChatRoom from '@/components/ChatRoom.vue';
 import SelectUser from '@/components/SelectUser.vue';
+import ErrorPage from '@/components/ErrorPage.vue';
 import axios from 'axios';
 import { apiBaseUrl } from '../config/config';
 
@@ -21,6 +22,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/',
     name: 'Home',
     component: AppHome,
+  },
+  {
+    path: '/error',
+    name: 'ErrorPage',
+    component: ErrorPage,
   },
   {
     path: '/user/:userName',

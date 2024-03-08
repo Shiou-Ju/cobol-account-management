@@ -27,6 +27,7 @@ RUN yarn build:backend
 
 # install frontend packages
 COPY ./frontend ./frontend
+COPY ./.env ./frontend/.env
 RUN cd frontend && yarn install
 
 # env to prevent vue config linting errors
