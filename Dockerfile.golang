@@ -1,0 +1,14 @@
+FROM golang:latest
+
+WORKDIR /app
+
+COPY go-backend/ .
+
+RUN mkdir -p ../go-output \
+    && go build -o ../go-output/chatroom .
+
+WORKDIR /app/../go-output
+
+EXPOSE 3000
+
+CMD ["./chatroom"]

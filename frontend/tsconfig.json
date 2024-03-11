@@ -6,7 +6,7 @@
     "jsx": "preserve",
     "importHelpers": true,
     "moduleResolution": "node",
-    "experimentalDecorators": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
@@ -14,8 +14,10 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "lib": ["esnext", "dom", "dom.iterable"]
+    "lib": ["esnext", "dom"],
+    "experimentalDecorators": true,
+    "types": ["webpack-env"]
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "src/vue-shims.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.vue", "src/shims-vue.d.ts"],
   "exclude": ["node_modules"]
 }

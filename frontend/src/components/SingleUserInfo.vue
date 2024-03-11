@@ -31,16 +31,28 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRoute } from 'vue-router';
 
+interface UserData {
+  user?: string;
+  balance?: number;
+}
+
+interface Transaction {
+  id: number;
+  date: string;
+  transaction: number;
+  balance: number;
+}
+
 export default {
   name: 'SingleUserInfo',
   setup() {
-    const userData = ref({});
-    const transactions = ref([]);
+    const userData = ref<UserData>({});
+    const transactions = ref<Transaction[]>([]);
     const isLoading = ref(true);
 
     const route = useRoute();
@@ -49,7 +61,6 @@ export default {
     onMounted(async () => {
       try {
         const userInfoResponse = await axios.get(`/api/user/${userName}`);
-
         const transactionResponse = await axios.get(
           `/api/user/${userName}/transactions`,
         );
@@ -58,8 +69,8 @@ export default {
         userData.value = userInfoResponse.data;
 
         isLoading.value = false;
-      } catch (error) {
-        console.error('API call failed:', error);
+      } catch (err: unknown) {
+        console.error('API call failed:', err);
         isLoading.value = false;
       }
     });

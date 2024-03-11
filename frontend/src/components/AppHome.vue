@@ -22,21 +22,26 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+
+interface User {
+  user: string;
+  date: string;
+}
 
 export default {
   name: 'UsersList',
   setup() {
-    const users = ref([]);
+    const users = ref<User[]>([]);
 
     onMounted(async () => {
       try {
         const response = await axios.get('/api/users');
         users.value = response.data;
-      } catch (error) {
-        console.error('API call failed:', error);
+      } catch (err: unknown) {
+        console.error('API call failed:', err);
       }
     });
 
